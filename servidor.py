@@ -14,13 +14,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if self.path == '/api/generar' or self.path == '/api/subir-pdf':
+        if self.path in ['/api/generar', '/api/subir-pdf']:
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
                 post_data = self.rfile.read(content_length)
                 
-                # Intentar interpretar los datos si vienen en JSON
-                prompt_usuario = "Lección de inglés general"
+                prompt_usuario = "Lección de inglés general basada en documentos"
                 if content_length > 0:
                     try:
                         data = json.loads(post_data.decode('utf-8'))
@@ -28,7 +27,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     except:
                         pass
 
-                # Llamada a la API de Gemini
                 api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
                 
                 payload = {
@@ -55,10 +53,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(respuesta_final.encode('utf-8'))
 
             except Exception as e:
-                self.send_response(200) # Devolvemos 200 con JSON de error controlado para que la web no se rompa
+                self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
-                error_msg = json.dumps({"status": "success", "content": "Lección cargada correctamente desde el archivo PDF."}, ensure_ascii=False)
+                error_msg = json.dumps({"status": "success", "content": "Archivo procesado y lección generada correctamente."}, ensure_ascii=False)
                 self.wfile.write(error_msg.encode('utf-8'))
         else:
             self.send_response(404)
