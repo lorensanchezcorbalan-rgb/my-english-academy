@@ -132,11 +132,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     print(f"MY ENGLISH ACADEMY corriendo en puerto {port}")
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
-```[cite: 3]
-
----
-
-### ¿Cómo seguimos?
-Copia este código en tu archivo `servidor.py` y guárdalo. 
-
-En tu siguiente mensaje dime si lo has guardado y te paso la adaptación rápida de `app.js` para que empiece a leer y escribir directamente en Google Sheets en lugar del almacenamiento local. ¡Ya casi lo tienes listo para la nube!
