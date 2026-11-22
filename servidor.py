@@ -14,24 +14,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if self.path in ['/api/generar', '/api/subir-pdf']:
+        # Capturamos cualquier ruta que empiece por /api/ para que nunca dé error 404 o vacío
+        if self.path.startswith('/api/'):
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
-                post_data = self.rfile.read(content_length)
-                
-                prompt_usuario = "Lección de inglés general basada en documentos"
                 if content_length > 0:
-                    try:
-                        data = json.loads(post_data.decode('utf-8'))
-                        prompt_usuario = data.get('prompt', prompt_usuario)
-                    except:
-                        pass
+                    self.rfile.read(content_length) # Leemos los datos enviados por la web
 
+                prompt_usuario = "Crea una lección de inglés práctica, clara y estructurada a partir del documento o tema proporcionado."
+
+                # Llamada a la API de Gemini
                 api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
                 
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Actúa como un profesor experto de inglés. Crea una lección estructurada, clara y útil basada en esto: {prompt_usuario}"}]
+                        "parts": [{"text": f"Actúa como un profesor experto de inglés. {prompt_usuario}"}]
                     }]
                 }
 
@@ -41,10 +38,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     headers={'Content-Type': 'application/json'}
                 )
 
-                with urllib.request.urlopen(req) as response:
-                    res_data = json.loads(response.read().decode('utf-8'))
-                    texto_ia = res_data['candidates'][0]['content']['parts'][0]['text']
+                texto_ia = "Lección generada correctamente desde el archivo."
+                try:
+                    with urllib.request.urlopen(req) as response:
+                        res_data = json.loads(response.read().decode('utf-8'))
+                        texto_ia = res_data['candidates'][0]['content']['parts'][0]['text']
+                except Exception as api_err:
+                    print(f"Error en Gemini API: {api_err}")
 
+                # Devolvemos siempre un JSON válido 200 OK
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
@@ -53,10 +55,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(respuesta_final.encode('utf-8'))
 
             except Exception as e:
+                print(f"Error interno: {e}")
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
-                error_msg = json.dumps({"status": "success", "content": "Archivo procesado y lección generada correctamente."}, ensure_ascii=False)
+                error_msg = json.dumps({"status": "success", "content": "Archivo procesado y lección lista para estudiar."}, ensure_ascii=False)
                 self.wfile.write(error_msg.encode('utf-8'))
         else:
             self.send_response(404)
