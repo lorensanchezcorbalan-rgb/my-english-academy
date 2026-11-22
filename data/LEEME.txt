@@ -1,0 +1,1 @@
+Los datos de prueba se guardan en el almacenamiento local del navegador. No borres los datos del navegador.

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: my-english-academy
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: ""
+    startCommand: "python servidor.py"
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
