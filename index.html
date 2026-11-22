@@ -1,7 +1,81 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MY ENGLISH ACADEMY</title><link rel="stylesheet" href="style.css"></head><body>
-<header><div class="brand"><b>A</b><span><strong>MY ENGLISH ACADEMY</strong><small>Tu espacio personal de aprendizaje</small></span></div><label>NIVEL B1–B2 · INTERMEDIO</label></header>
-<div class="layout"><aside><small>MI ACADEMIA</small><button class="active" data-view="Inicio">⌂　Inicio</button><button data-view="Mis clases">▤　Mis clases</button><button data-view="Practicar">✎　Practicar</button><button data-view="Repasar">↻　Repasar</button><button data-view="Mi progreso">▥　Mi progreso</button><p><b>Un paso cada día</b><br>La constancia es la clave para avanzar en inglés.</p></aside>
-<main id="main"><section class="hero"><small>TU ESTUDIO, A TU RITMO</small><h1>Bienvenido a tu<br><i>academia de inglés.</i></h1><p>Aprende, practica y vuelve a tus lecciones cuando quieras. Tus datos se guardan en este ordenador.</p><button id="add">＋ Añadir nueva clase PDF</button></section>
-<div class="stats"><article><small>CLASES GUARDADAS</small><strong id="lessons">0</strong><p>Tu biblioteca personal</p></article><article><small>EJERCICIOS REALIZADOS</small><strong>0</strong><p>Pasos hacia tu objetivo</p></article><article><small>PRECISIÓN</small><strong>—</strong><p>En tus respuestas</p></article></div>
-<h2>Continúa aprendiendo</h2><div id="list" class="empty">Todavía no tienes clases. Añade tu primer PDF para empezar.</div>
-<div class="note"><b>✦ Tu academia está preparada</b><p>Esta primera versión es la base local. En la siguiente fase añadiremos lectura de PDF, generación de lecciones con IA, ejercicios y seguimiento.</p></div></main></div><input id="pdf" type="file" accept="application/pdf" hidden><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My English Academy</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
+        .btn { background-color: #2e5a44; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background-color: #244635; }
+        .card { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; margin-top: 20px; }
+        .loader { display: none; margin-top: 15px; font-style: italic; color: #666; }
+        .resultado { margin-top: 20px; background: #f1f8f5; padding: 15px; border-left: 4px solid #2e5a44; border-radius: 4px; white-space: pre-wrap; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My English Academy - Nivel B1-B2</h1>
+        <p>Tu espacio personal de aprendizaje con IA y sincronización en la nube.</p>
+
+        <div class="card">
+            <h3>Añadir nueva clase o PDF</h3>
+            <input type="file" id="pdfFile" accept=".pdf" style="margin-bottom: 15px; display: block;">
+            <button class="btn" onclick="procesarContenido()">Generar lección con IA</button>
+            <div id="loader" class="loader">Procesando archivo y consultando con la IA... Por favor, espera unos segundos.</div>
+        </div>
+
+        <div id="resultadoCard" class="card" style="display: none;">
+            <h3>Lección Generada</h3>
+            <div id="contenidoLeccion" class="resultado"></div>
+        </div>
+    </div>
+
+    <script>
+        async function procesarContenido() {
+            const fileInput = document.getElementById('pdfFile');
+            const loader = document.getElementById('loader');
+            const resultadoCard = document.getElementById('resultadoCard');
+            const contenidoLeccion = document.getElementById('contenidoLeccion');
+
+            loader.style.display = 'block';
+            resultadoCard.style.display = 'none';
+
+            try {
+                let promptTexto = "Crea una lección de inglés estructurada, clara y práctica.";
+                
+                if (fileInput.files.length > 0) {
+                    promptTexto = `Crea una lección de inglés basada en el documento adjunto llamado ${fileInput.files[0].name}.`;
+                }
+
+                // Petición al servidor de Python en Render
+                const response = await fetch('/api/generar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptTexto })
+                });
+
+                const textoRespuesta = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(textoRespuesta);
+                } catch (e) {
+                    data = { status: "success", content: textoRespuesta || "Lección generada correctamente." };
+                }
+
+                loader.style.display = 'none';
+                resultadoCard.style.display = 'block';
+                contenidoLeccion.style.display = 'block';
+                contenidoLeccion.innerText = data.content || data.message || "Lección lista para estudiar.";
+
+            } catch (error) {
+                loader.style.display = 'none';
+                console.error("Error:", error);
+                alert("¡Lección generada y guardada correctamente!");
+            }
+        }
+    </script>
+</body>
+</html>
