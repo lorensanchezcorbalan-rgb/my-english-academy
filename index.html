@@ -12,7 +12,7 @@
         .btn:hover { background-color: #244635; }
         .card { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; margin-top: 20px; }
         .loader { display: none; margin-top: 15px; font-style: italic; color: #666; }
-        .resultado { margin-top: 20px; background: #f1f8f5; padding: 15px; border-left: 4px solid #2e5a44; border-radius: 4px; white-space: pre-wrap; display: none; }
+        .resultado { margin-top: 20px; background: #f1f8f5; padding: 15px; border-left: 4px solid #2e5a44; border-radius: 4px; white-space: pre-wrap; display: none; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -47,10 +47,9 @@
                 let promptTexto = "Crea una lección de inglés estructurada, clara y práctica.";
                 
                 if (fileInput.files.length > 0) {
-                    promptTexto = `Crea una lección de inglés basada en el documento adjunto llamado ${fileInput.files[0].name}.`;
+                    promptTexto = `Crea una lección de inglés detallada basada en el documento adjunto llamado ${fileInput.files[0].name}.`;
                 }
 
-                // Petición al servidor de Python en Render
                 const response = await fetch('/api/generar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -62,18 +61,20 @@
                 try {
                     data = JSON.parse(textoRespuesta);
                 } catch (e) {
-                    data = { status: "success", content: textoRespuesta || "Lección generada correctamente." };
+                    data = { content: textoRespuesta };
                 }
 
                 loader.style.display = 'none';
                 resultadoCard.style.display = 'block';
                 contenidoLeccion.style.display = 'block';
-                contenidoLeccion.innerText = data.content || data.message || "Lección lista para estudiar.";
+                
+                // Mostramos exactamente el texto generado por la IA de Gemini
+                contenidoLeccion.innerText = data.content || "Lección lista para estudiar.";
 
             } catch (error) {
                 loader.style.display = 'none';
                 console.error("Error:", error);
-                alert("¡Lección generada y guardada correctamente!");
+                alert("Hubo un pequeño error al conectar con la IA.");
             }
         }
     </script>
